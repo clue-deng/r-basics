@@ -67,6 +67,7 @@ You can tell the type of a data object using the `class()` function. Some common
 - Factor (ordinal): `factor(c("medium", "small", "large", "small"))`
 
 - Missing: `NA`
+- Not a number: `NaN`
 
 
 There are also more esoteric ones that you learn as you need them.
@@ -83,6 +84,7 @@ The simplest way you can use R is as a calculator.
 1 * 2
 1 / 2
 ```
+# four ways to execute (command+return, terminal with Rscripts 'doc name', console execution, or play button)
 
 It has lots of built-in mathematical functions and some built-in constants too.
 
@@ -103,7 +105,7 @@ Vectors _concatenate_ lots of values of the same type in one dimension.
 
 ```{r}
 c(1,2,3,4)
-0:5
+0:5 # 0 1 2 3 4 5
 
 c("apple", "banana", "carrot")
 
@@ -113,7 +115,7 @@ c(TRUE, FALSE, FALSE, TRUE, FALSE, FALSE)
 Assignment allows you to store and recall values and is done with an "arrow" `<-`. 
 
 ```{r}
-one <- 1 
+one <- 1 # store in object
 two <- 2 
 
 one 
@@ -126,16 +128,17 @@ You can store vectors too. To extract or replace elements of them, use square br
 > Pythonistas take note: R uses natural indexing! 
 
 ```{r}
-foods <- c("apple", "banana", "carrot")
-foods
+foods <- c("apple", "banana", "carrot") # natural indexing starting from 1
+foods 
 foods[1]
 
 fruits <- foods 
 fruits[3] <- "celementine"
 fruits
 
-# drop elements by using negative integers
+# DROP elements by using negative integers
 foods[-3]
+foods
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -184,11 +187,12 @@ mean(x)
 :::{.callout-tip title="Test your understanding"}
 
 How would you find the median of `x`? How about the 90th percentile? 
-:::
-
 ```{r}
-# your code goes here
+median(x)
+median(foods)
+quantile(x=x, probs= 0.9)
 ```
+:::
 
 :::{.callout-tip title="Test your understanding"}
 
@@ -196,7 +200,8 @@ Use `c()` to add a missing value to the start of the vector `x`. How does that i
 :::
 
 ```{r}
-# your code goes here
+x <- c(NA, x) 
+median(x)
 ``` 
 
 ## Matricies and Arrays 
@@ -215,7 +220,8 @@ Make a 3 by 2 matrix $B$ containing the numbers 1 to 6.
 :::
 
 ```{r}
-# your code goes here
+B <- matrix(1:6, nrow=3)
+B
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -224,7 +230,7 @@ Use `%*% to calculate $AB$.
 :::
 
 ```{r}
-# your code goes here
+A %*% B
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -242,7 +248,12 @@ $$ {#eq-matrix-c}
 
 
 ```{r}
-#your code goes here
+C <- matrix(data = c(1,1,0,0,1,1,0,0,1), nrow=3, byrow=TRUE) # Default: column wise, so need to assign row wise dependingly
+# byrow is optional here
+C
+C_inv <- solve(C) # solve for inverse
+C_inv
+
 ```
 
 You will often want to calculate row-wise or column-wise summary statistics of matrices and other grid-like data structures. 
@@ -254,11 +265,19 @@ rowSums(A)
 ```
 
 ```{r}
-apply(X = A, MARGIN = 1, FUN = sum)
+apply(X = A, MARGIN = 1, FUN = sum) # margin: 1 = row, 2 = col
 ```
 
 ```{r}
 colMeans(A)
+```
+```{r}
+colMeans(C)
+```
+```{r}
+apply(X = C, MARGIN = 2, FUN = mean)
+apply(X = C, MARGIN = 2, FUN = median)
+?apply() # ?func() gives explanation of the function
 ```
 
 ```{r}
@@ -341,7 +360,7 @@ grades$class
 ```
 
 ```{r}
-grades[ ,"class"]
+grades[ ,"class"] # if shuffled, may not work, but using class name will always give you the result
 ```
 
 ```{r}
@@ -360,7 +379,7 @@ Subset the `grades` data frame to extract the id and score of the students whose
 :::
 
 ```{r}
-# your code goes here
+grades[grades$score>=87, c("student_id", "score")]
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -369,19 +388,40 @@ Is there any difference between `grades$class` and `grades[ ,"class"]`?
 :::
 
 ```{r}
-# your code goes here
+grades$class
+grades[ ,"class"]
+```
+
+```{r}
+class(grades$class)
+class(grades[ ,"class"])
 ```
 
 You can add elements to a data.frame by assigning them to non-existent columns or rows. (Be careful of the latter!) 
 
 ```{r}
 grades$gender <- rep("Female", 6)
+grades
 ```
 
 :::{.callout-tip title="Test your understanding"}
 
 Make up a vector with an additional entry and try adding it as a 7th row of `grades`. What happens? Why do you think that happens? 
 :::
+```{r}
+extra_student <- data.frame(
+  student_id = 7,
+  score = NA,
+  class= NA,
+  pass = NA,
+  gender = "Male"
+)
+extra_student
+rbind(grades, extra_student) # bind the extra to grade by rows
+#grades
+grades <- rbind(grades, extra_student)
+grades
+```
 
 ## Lists 
 
@@ -411,6 +451,10 @@ zv <- list(
                         students = 95,
                         online = TRUE))
   )
+
+zv$forename # extract element (or even deeper)
+zv$modules$data_science
+zv$modules$data_science$programme
 ```
 
 R also has some other, application specific, data structures but under the hood these are usually just lists.  
@@ -433,6 +477,7 @@ and re-load it from the CSV we just created
 
 ```{r}
 grades <- read.csv("grades.csv")
+grades
 ```
 
 
@@ -446,7 +491,12 @@ Follow the previous example to use `saveRDS()` and `readRDS()` to save the `zv` 
 :::
 
 ```{r}
-# your code goes here
+saveRDS(zv, "zv_info.RDS") # non-human readable file
+```
+
+```{r} 
+rm(zv) # remove from workspace
+zv <- readRDS("zv_info.RDS")
 ```
 
 > **Note:** It is important to know where R is running. This is the so-called working directory). Use `pwd` in the terminal or `getwd()` in R to find this out.
