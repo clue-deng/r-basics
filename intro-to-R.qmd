@@ -69,6 +69,14 @@ You can tell the type of a data object using the `class()` function. Some common
 - Missing: `NA`
 - Not a number: `NaN`
 
+```{r}
+ex1 <- factor(c("red", "green", "blue", "green"))
+ex1
+class(ex1) # one more level deeper than defining using c, a vector
+ex2 <- c("red", "green", "blue", "green")
+ex2
+class(ex2)
+```
 
 There are also more esoteric ones that you learn as you need them.
 
@@ -83,6 +91,7 @@ The simplest way you can use R is as a calculator.
 1 - 2
 1 * 2
 1 / 2
+1 %% 2 # modulo
 ```
 # four ways to execute (command+return, terminal with Rscripts 'doc name', console execution, or play button)
 
@@ -136,7 +145,7 @@ fruits <- foods
 fruits[3] <- "celementine"
 fruits
 
-# DROP elements by using negative integers
+# DROP elements by using negative integers (in display), but not remove
 foods[-3]
 foods
 ```
@@ -170,17 +179,11 @@ Having data stored in a vector allows us to easily calculate summary statistics.
 
 ```{r}
 x <- 1:10 
-```
 
-```{r}
 length(x)
-```
 
-```{r}
 sum(x)
-```
 
-```{r}
 mean(x)
 ```
 
@@ -201,6 +204,7 @@ Use `c()` to add a missing value to the start of the vector `x`. How does that i
 
 ```{r}
 x <- c(NA, x) 
+x
 median(x)
 ``` 
 
@@ -292,7 +296,8 @@ Calculate the column means of $C$ and the row medians of $C^{-1}$.
 :::
 
 ```{r}
-# Your code goes here
+apply(X = C, MARGIN = 2, FUN = mean)
+apply(X = C, MARGIN = 1, FUN = median)
 ```
 
 :::{.callout-tip}
@@ -356,7 +361,8 @@ grades[1, 2]
 Or using the column names: 
 
 ```{r}
-grades$class 
+grades$class
+class(grades$class)
 ```
 
 ```{r}
@@ -397,7 +403,7 @@ class(grades$class)
 class(grades[ ,"class"])
 ```
 
-You can add elements to a data.frame by assigning them to non-existent columns or rows. (Be careful of the latter!) 
+You can add elements to a data.frame by assigning them to NON-existent columns or rows. (Be careful of the latter!) 
 
 ```{r}
 grades$gender <- rep("Female", 6)
@@ -417,7 +423,7 @@ extra_student <- data.frame(
   gender = "Male"
 )
 extra_student
-rbind(grades, extra_student) # bind the extra to grade by rows
+# rbind(grades, extra_student) # bind the extra to grade by rows
 #grades
 grades <- rbind(grades, extra_student)
 grades
@@ -579,7 +585,18 @@ Make similar plots for the standard exponential distribution.
 :::
 
 ```{r}
-# your code goes here
+x <- seq(from = 0,to = 5, by = 0.01)
+exppdf <- dexp(x = x, rate = 1, log = FALSE)
+expcdf <- pexp(q = x, rate = 1, lower.tail = TRUE, log.p = FALSE)
+plot(x = x, 
+     y = exppdf,
+     type = "l",
+     main = 'PDF of exponential')
+
+plot(x = x, 
+     y = expcdf,
+     type = "l",
+     main = 'CDF of exponential')
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -587,6 +604,7 @@ Make similar plots for the standard exponential distribution.
 
 - What do you think are the names of the equivalent functions for the continuous uniform distribution? 
 - Why might one of these names be confusing?
+runif, it might be read as 'run if'
 :::
 
 ## Simulating from statistical distributions 
@@ -607,6 +625,7 @@ Similar to previous functions we can vectorise the inputs.
 
 ```{r}
 rnorm(n = 5, mean = 1:5, sd = 1)
+#rnorm(n = 25, mean = 1:5, sd = 1:5) # recycling rule
 ```
 
 But if we re-run the same line of code we get a different set of outputs. 
@@ -620,7 +639,9 @@ This is exactly what we want but is terrible for reproducibility. What if your w
 We can set the _seed_ of our random number generator to avoid this problem. Suppose in our simulations we want to generate two sets of random numbers. 
 
 ```{r}
-set.seed(1234)
+set.seed(15)
+rnorm(n = 5, mean = 1:5, sd = 1)
+rnorm(n = 5, mean = 1:5, sd = 1)
 rnorm(n = 5, mean = 1:5, sd = 1)
 rnorm(n = 5, mean = 1:5, sd = 1)
 ```
@@ -629,6 +650,8 @@ We get different numbers each time we run `rnorm()` but if we rerun the entire c
 
 ```{r}
 set.seed(1234)
+rnorm(n = 5, mean = 1:5, sd = 1)
+rnorm(n = 5, mean = 1:5, sd = 1)
 rnorm(n = 5, mean = 1:5, sd = 1)
 rnorm(n = 5, mean = 1:5, sd = 1)
 ```
@@ -655,19 +678,38 @@ One caveat is to be wary of "seed hacking". While checking that your results sta
 :::{.callout-tip title="Test your understanding"}
 
 a) Without setting a seed, simulate 2 datasets. Each should come be of a different size and be drawn from two Normal distributions with different parameters. 
+```{r}
+dataset1 <- rnorm(n = 20, mean = 2, s = 3.5)
+dataset2 <- rnorm(n = 30, mean = 1, s = 0.5)
+```
 
 b) Use `qqnorm()` to create a plot comparing the quantiles of your samples to the quantiles of the best-fitting Normal distribution. 
+```{r}
+par(mfrow = c(1, 2))
+qqnorm(y = dataset1, main = 'QQ plot of dataset 1 with ND'); qqline(dataset1)
+qqnorm(y = dataset2, main = 'QQ plot of dataset 2 with ND'); qqline(dataset2)
+```
 
 c) Rerun your previous code and see the plots change. 
 
-d) Add a seed to your code and check that you get the same plots every time. 
+d) Add a seed to your code and check that you get the same plots every time.
+```{r}
+set.seed(1234)
+dataset1 <- rnorm(n = 20, mean = 2, s = 3.5)
+dataset2 <- rnorm(n = 30, mean = 1, s = 0.5)
+
+par(mfrow = c(1, 2))
+qqnorm(y = dataset1, main = 'QQ plot of dataset 1 with ND'); qqline(dataset1)
+qqnorm(y = dataset2, main = 'QQ plot of dataset 2 with ND'); qqline(dataset2)
+```
 
 e) Use `hist()` to create a histogram for each of your samples.
 
-:::
-
 ```{r}
-# your code goes here
+set.seed(1234)
+par(mfrow = c(1, 2))
+hist(dataset1, breaks = 15, main = "Histogram of dataset1")
+hist(dataset2, breaks = 15, main = "Histogram of dataset2")
 ```
 
 
@@ -714,12 +756,32 @@ Write a loop that prints whether each number from 1 to 5 is even or odd.
 :::
 
 ```{r}
-# your code goes here
+for (num in 1:5){
+  if (num %% 2 != 0){
+    print(paste(num, "is odd"))
+  }else{
+    print(paste(num, "is even"))
+  }
+}
 ```
 
 :::{.callout-tip title="Test your understanding"}
 
 A useful helper functions to use with for loops is `seq_along()`. What do you think it does? 
+
+seq_along(x) generates a sequence of integers from 1 up to the LENGTH OF x.
+```{r}
+x <- c(12,34,45,19,0)
+num_seq <- seq_along(x)
+for (num in num_seq){
+  if (num %% 2 != 0){
+    print(paste(num, "is odd"))
+  }else{
+    print(paste(num, "is even"))
+  }
+}
+
+```
 :::
 
 
@@ -797,20 +859,20 @@ Can you think of an example where the second code would work but the first would
 
 :::{.callout-tip title="Test your understanding"}
 
-Write a loop that prints whether each number from 1 to 5 is even or odd. You might find `%%` useful for this.
-:::
-
-```{r}
-# your code goes here
-```
-
-:::{.callout-tip title="Test your understanding"}
-
 Write code that picks a number $N$ between 5 and 10 (inclusive) uniformly at random. Write a loop that prints whether each number from n to 10 is even or odd.
 :::
 
 ```{r}
-# your code goes here
+random_real <- runif(1, min = 5, max = 10) # gives real number
+random_num <- sample(5:10, size = 1) # gives real number
+for (i in c(random_num : 10)){
+  {if (i %% 2 == 0) {
+    cat(i, "is even\n")
+  } else {
+    cat(i, "is odd\n")
+  }}
+}
+
 ```
 
 :::{.callout-tip title="Test your understanding"}
@@ -819,7 +881,16 @@ Write code that starts with an empty vector `c()` and simulates exponential rand
 :::
 
 ```{r}
-# your code goes here
+empty_vec <- c()
+total_sum <- 0
+  
+while (total_sum <= 10){
+  simulation <- rexp(1, rate = 1)
+  total_sum <- total_sum + simulation
+  empty_vec <- c(total_sum, empty_vec)
+}
+
+sort(empty_vec, decreasing = FALSE)
 ```
 
 
@@ -859,6 +930,7 @@ pass <- grades$pass
 class_padded <- c(NA, NA, grades$class, NA)
 gender_padded <- c(NA, NA, grades$gender, NA)
 pass_padded <- c(NA, NA, grades$pass, NA)
+class_padded
 
 ```
 
@@ -914,11 +986,18 @@ column to the `airquality` data frame. _Note:_ $C = (F - 32) \times \frac{5}{9}$
 ```{r}
 airquality <- datasets::airquality
 
-farenheit_to_centigrade <- function(){
-# YOUR CODE GOES HERE
+farenheit_to_centigrade <- function(farenheit){
+  stopifnot(is.numeric(farenheit)) # not a number or like NA
+  temp_c <- (farenheit - 32) * (5/9)
 }
 
-# YOUR CODE GOES HERE
+# it is a vectorized language so no need to use loop to assign to each element
+new_tempc_col <- farenheit_to_centigrade(airquality$Temp)
+# automatically performs the operation on each row
+airquality$Temp_C <- new_tempc_col
+
+# quick check
+head(airquality[, c("Temp", "Temp_C")])
 ```
 
 Function definitions can get quite long and messy. In real-world applications we usually keep them in their own R file named after the function. This keeps any notebooks or analysis scripts easy to read and makes the relevant function definition easy to find. 
@@ -988,6 +1067,7 @@ install.packages("roxygen2")
 - Keyboard short cut: `cmd` + `option` + `shift` + "r" or `crtl` + `option` + `shift` + "r".
 
 ```{r}
+
 pad_with_NAs <- function(x, n_left, n_right){
   
   stopifnot(n_left >= 0)
@@ -997,6 +1077,10 @@ pad_with_NAs <- function(x, n_left, n_right){
   
   c(rep(NA, n_left), x, rep(NA, n_right))
 }
+
+# if functions are stored in another file and just ref from there
+#source("src/pad_with_NAs.R")
+#pad_with_NAs(1:4,1,3)
 ```
 
 This should get you something like this.
